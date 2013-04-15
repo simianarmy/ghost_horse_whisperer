@@ -1,0 +1,98 @@
+#!/usr/bin/ruby
+
+require 'optparse'
+require 'escape'
+require 'digest'
+
+# ruby script to speak horse_js tweets
+# and other stuff
+#
+TWITTER     = 'twitter'
+INTERVALS   = 30
+HANDLE      = 'horse_js'
+HASHTAG     = 'HorseGhostMauger'
+NEIGH_SOUND = '~/horseneigh.mp3'
+MYK_SOUND   = '~/the-more-you-know.mp3'
+SOUND_APP   = 'afplay'
+last = nil
+$cache = {}
+$options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: ghosthorse_whisperer [options]"
+
+  opts.on("-l", "--last", "Last tweet only") do |v|
+    $options[:playLast] = v
+  end
+  opts.on("-v", "--verbose", "verbose") do |v|
+    $options[:verbose] = v
+  end
+end.parse!
+
+def speak(who, tweet)
+    post_tag = nil
+
+    if who == 'horse jay ess'
+        `#{SOUND_APP} -v 0.3 #{NEIGH_SOUND}`
+        `#{Escape.shell_command(["say", tweet])}`
+    else
+        # Strip trailing hash
+        if tweet =~ /#(\S+)$/i
+            post_tag = $1
+            tweet.gsub! /#\S+$/, ''
+        end
+        `#{Escape.shell_command(["say", tweet])}`
+        `#{SOUND_APP} #{MYK_SOUND}` if post_tag =~ /moreyouknow/i
+    end
+end
+
+def gettags(tag)
+    tweets = `TWITTER search #{tag}`.map do |tweet|
+        tweet.split('#' + tag)
+    end
+end
+
+def gethorse
+    `TWITTER search horse_js | grep ^horse_js`.map do |tweet|
+        ['horse jay ess', tweet.gsub(/^horse_js\s+/, '')]
+    end
+end
+
+def cache_key(val)
+    Digest::MD5.hexdigest(val) unless val.nil?
+end
+
+# cache all messages
+def cache_do(val)
+    key = cache_key(val)
+    if !$cache[key]
+        yield if block_given?
+        $cache[key] = 1
+    end
+end
+    
+while true do
+    tweets = (gethorse + gettags(HASHTAG))
+    current = [] 
+
+    puts 'all: ' + tweets.inspect if $options[:verbose]
+    if $options[:playLast]
+        current << tweets[0]
+        $options[:playLast] = false
+    else
+        current = tweets.find_all { |t| !$cache[cache_key(t[1])] }
+    end
+    puts 'current: ' + current.inspect if $options[:verbose]
+
+    current.each do |t| 
+        cache_do(t[1]) do  
+            speak t[0], t[1]
+        end
+    end
+
+    # Cache all tweets now
+    tweets.each { |t| cache_do(t[1]) }
+
+    sleep INTERVALS 
+end
+
