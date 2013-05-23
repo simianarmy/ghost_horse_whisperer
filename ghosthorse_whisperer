@@ -30,20 +30,27 @@ OptionParser.new do |opts|
 end.parse!
 
 def speak(who, tweet)
+    return unless tweet
     post_tag = nil
 
-    if who == 'horse jay ess'
+    # save last hash
+    if tweet =~ /#(\S+)$/i
+        post_tag = $1
+    end
+    # convert hashes
+    if tweet =~ /#\S+/i
+        tweet.gsub! /#(\S+)/, 'hash \1'
+    end
+    cmd = Escape.shell_command(["say", tweet])
+
+    if who == HANDLE 
         `#{SOUND_APP} -v 0.3 #{NEIGH_SOUND}`
-        `#{Escape.shell_command(["say", tweet])}`
+        `#{cmd}`
     else
-        # Strip trailing hash
-        if tweet =~ /#(\S+)$/i
-            post_tag = $1
-            tweet.gsub! /#\S+$/, ''
-        end
-        `#{Escape.shell_command(["say", tweet])}`
+        `#{cmd}`
         `#{SOUND_APP} #{MYK_SOUND}` if post_tag =~ /moreyouknow/i
     end
+    puts cmd if $options[:verbose]
 end
 
 def gettags(tag)
@@ -54,7 +61,7 @@ end
 
 def gethorse
     `TWITTER search horse_js | grep ^horse_js`.map do |tweet|
-        ['horse jay ess', tweet.gsub(/^horse_js\s+/, '')]
+        [HANDLE, tweet.gsub(/^horse_js\s+/, '')]
     end
 end
 
