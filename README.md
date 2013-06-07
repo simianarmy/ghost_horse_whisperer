@@ -13,4 +13,5 @@ Speaks @horse_js and #horseGhostMauger tweets
 * bundle
 * ghosthorse.sh [options]
 
-
+*Send requests, questions to
+@simianarmy
