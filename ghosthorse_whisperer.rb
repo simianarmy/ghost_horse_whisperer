@@ -1,18 +1,17 @@
-#!/usr/bin/ruby
-
 require 'optparse'
 require 'escape'
 require 'digest'
+require 'twitter'
+require "base64"
 
 # ruby script to speak horse_js tweets
 # and other stuff
 #
-TWITTER     = 'twitter'
 INTERVALS   = 30
 HANDLE      = 'horse_js'
 HASHTAG     = 'HorseGhostMauger'
-NEIGH_SOUND = '~/horseneigh.mp3'
-MYK_SOUND   = '~/the-more-you-know.mp3'
+NEIGH_SOUND = './horseneigh.mp3'
+MYK_SOUND   = './the-more-you-know.mp3'
 SOUND_APP   = 'afplay'
 last = nil
 $cache = {}
@@ -28,6 +27,14 @@ OptionParser.new do |opts|
     $options[:verbose] = v
   end
 end.parse!
+
+# Please don't abuse this - it's a read only app
+Twitter.configure do |config|
+  config.consumer_key = 'USzCMU7LF0Sg8ikOueRaig'
+  config.consumer_secret = 'b08uSkkpfYjLIcrR5gDXgJI24y85gdTKkQ0efbYGGY'
+  config.oauth_token = '54721863-mgTw6cDim71iLzgt3TPC4YRhAE4mVBizKIvEHKhKQ'
+  config.oauth_token_secret = 'R6CkvGYcaDS7ZHj0XPgnTjauYaqlGlETK1sJXOAfjfs'
+end
 
 def speak(who, tweet)
     return unless tweet
@@ -54,14 +61,18 @@ def speak(who, tweet)
 end
 
 def gettags(tag)
-    tweets = `TWITTER search #{tag}`.map do |tweet|
-        tweet.split('#' + tag)
+    Twitter.search(tag, :result_type => "recent").results.map do |status|
+        ["##{tag}", status.text]
+      #"#{status.from_user}: #{status.text}"
+    #tweets = `TWITTER search #{tag}`.map do |tweet|
+        #tweet.split('#' + tag)
     end
 end
 
 def gethorse
-    `TWITTER search horse_js | grep ^horse_js`.map do |tweet|
-        [HANDLE, tweet.gsub(/^horse_js\s+/, '')]
+    Twitter.user_timeline(HANDLE).map do |tweet|
+    #`TWITTER search horse_js | grep ^horse_js`.map do |tweet|
+        [HANDLE, tweet.text]
     end
 end
 

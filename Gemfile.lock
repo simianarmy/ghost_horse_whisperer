@@ -1,0 +1,20 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    escape (0.0.4)
+    faraday (0.8.7)
+      multipart-post (~> 1.1)
+    multi_json (1.7.6)
+    multipart-post (1.2.0)
+    simple_oauth (0.2.0)
+    twitter (4.7.0)
+      faraday (~> 0.8, < 0.10)
+      multi_json (~> 1.0)
+      simple_oauth (~> 0.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  escape
+  twitter
