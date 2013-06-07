@@ -90,7 +90,13 @@ def cache_do(val)
 end
     
 while true do
-    tweets = (gethorse + gettags(HASHTAG))
+    begin
+        tweets = (gethorse + gettags(HASHTAG))
+    rescue Twitter::Error::ClientError => e
+        puts 'oh noes, client error ' + e
+        sleep INTERVALS
+        next
+    end
     current = [] 
 
     puts 'all: ' + tweets.inspect if $options[:verbose]

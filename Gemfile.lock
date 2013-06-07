@@ -4,9 +4,11 @@ GEM
     escape (0.0.4)
     faraday (0.8.7)
       multipart-post (~> 1.1)
+    json (1.8.0)
     multi_json (1.7.6)
     multipart-post (1.2.0)
     simple_oauth (0.2.0)
+    system_timer (1.2.4)
     twitter (4.7.0)
       faraday (~> 0.8, < 0.10)
       multi_json (~> 1.0)
@@ -17,4 +19,6 @@ PLATFORMS
 
 DEPENDENCIES
   escape
+  json
+  system_timer
   twitter
