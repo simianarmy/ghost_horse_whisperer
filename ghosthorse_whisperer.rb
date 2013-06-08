@@ -10,21 +10,24 @@ require "base64"
 INTERVALS   = 30
 HANDLE      = 'horse_js'
 HASHTAG     = 'HorseGhostMauger'
-NEIGH_SOUND = './horseneigh.mp3'
-MYK_SOUND   = './the-more-you-know.mp3'
+NEIGH_SOUND = 'horseneigh.mp3'
+MYK_SOUND   = 'the-more-you-know.mp3'
+HASH_SOUND_MAP = {
+    'moreyouknow' => MYK_SOUND
+}
+SOUNDS_DIR  = Dir.pwd
 SOUND_APP   = 'afplay'
-last = nil
 $cache = {}
 $options = {}
 
 OptionParser.new do |opts|
   opts.banner = "Usage: ghosthorse_whisperer [options]"
 
-  opts.on("-l", "--last", "Last tweet only") do |v|
-    $options[:playLast] = v
-  end
   opts.on("-v", "--verbose", "verbose") do |v|
     $options[:verbose] = v
+  end
+  opts.on("--last N", "Play last N tweets only") do |n|
+    $options[:lastx] = n
   end
 end.parse!
 
@@ -55,23 +58,26 @@ def speak(who, tweet)
         `#{cmd}`
     else
         `#{cmd}`
-        `#{SOUND_APP} #{MYK_SOUND}` if post_tag =~ /moreyouknow/i
+        play_hash_audio post_tag
     end
     puts cmd if $options[:verbose]
+end
+
+# Checks hash audio map, plays audio if matched
+def play_hash_audio(hash)
+    HASH_SOUND_MAP.each do |k, v|
+        `#{SOUND_APP} #{SOUNDS_DIR}/#{v}` if hash.downcase.match(k.downcase)
+    end
 end
 
 def gettags(tag)
     Twitter.search(tag, :result_type => "recent").results.map do |status|
         ["##{tag}", status.text]
-      #"#{status.from_user}: #{status.text}"
-    #tweets = `TWITTER search #{tag}`.map do |tweet|
-        #tweet.split('#' + tag)
     end
 end
 
 def gethorse
     Twitter.user_timeline(HANDLE).map do |tweet|
-    #`TWITTER search horse_js | grep ^horse_js`.map do |tweet|
         [HANDLE, tweet.text]
     end
 end
@@ -91,20 +97,18 @@ end
     
 while true do
     begin
-        tweets = (gethorse + gettags(HASHTAG))
+        tweets = (gethorse + gettags(HASHTAG)).reverse
     rescue Twitter::Error::ClientError => e
         puts 'oh noes, client error ' + e
         sleep INTERVALS
         next
     end
-    current = [] 
-
     puts 'all: ' + tweets.inspect if $options[:verbose]
-    if $options[:playLast]
-        current << tweets[0]
-        $options[:playLast] = false
-    else
-        current = tweets.find_all { |t| !$cache[cache_key(t[1])] }
+    current = tweets.find_all { |t| !$cache[cache_key(t[1])] }
+
+    if $options[:lastx]
+        current = current.pop $options[:lastx].to_i
+        $options[:lastx] = false
     end
     puts 'current: ' + current.inspect if $options[:verbose]
 
