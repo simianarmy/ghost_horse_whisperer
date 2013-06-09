@@ -98,8 +98,8 @@ end
 while true do
     begin
         tweets = (gethorse + gettags(HASHTAG)).reverse
-    rescue Twitter::Error::ClientError => e
-        puts 'oh noes, client error ' + e
+    rescue 
+        puts 'oh noes, client error ' + $!
         sleep INTERVALS
         next
     end
