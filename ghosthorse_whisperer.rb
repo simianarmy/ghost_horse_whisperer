@@ -58,7 +58,7 @@ def speak(who, tweet)
         `#{cmd}`
     else
         `#{cmd}`
-        play_hash_audio post_tag
+        play_hash_audio(post_tag) unless post_tag.nil?
     end
     puts cmd if $options[:verbose]
 end
