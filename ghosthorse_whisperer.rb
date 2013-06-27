@@ -9,11 +9,14 @@ require "base64"
 #
 INTERVALS   = 30
 HANDLE      = 'horse_js'
-HASHTAG     = 'HorseGhostMauger'
+HASHTAG     = 'horsemauger'
 NEIGH_SOUND = 'horseneigh.mp3'
 MYK_SOUND   = 'the-more-you-know.mp3'
 HASH_SOUND_MAP = {
     'moreyouknow' => MYK_SOUND
+}
+HASH_VOICE_MAP = {
+    HASHTAG => 'whisper'
 }
 SOUNDS_DIR  = Dir.pwd
 SOUND_APP   = 'afplay'
@@ -42,6 +45,7 @@ end
 def speak(who, tweet)
     return unless tweet
     post_tag = nil
+    who.gsub! /^#/, ''
 
     # save last hash
     if tweet =~ /#(\S+)$/i
@@ -49,18 +53,22 @@ def speak(who, tweet)
     end
     # convert hashes
     if tweet =~ /#\S+/i
-        tweet.gsub! /#(\S+)/, 'hash \1'
+        tweet.gsub! /#(\S+)/, 'hashtag \1'
     end
-    cmd = Escape.shell_command(["say", tweet])
 
+    cmd = ['say']
     if who == HANDLE 
         `#{SOUND_APP} -v 0.3 #{NEIGH_SOUND}`
-        `#{cmd}`
-    else
-        `#{cmd}`
-        play_hash_audio(post_tag) unless post_tag.nil?
+    elsif HASH_VOICE_MAP[who]
+        cmd << '-v'
+        cmd << HASH_VOICE_MAP[who]
     end
+
+    cmd << tweet
     puts cmd if $options[:verbose]
+
+    `#{Escape.shell_command(cmd)}`
+    play_hash_audio(post_tag) unless post_tag.nil? || who == HANDLE
 end
 
 # Checks hash audio map, plays audio if matched
