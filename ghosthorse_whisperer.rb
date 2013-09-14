@@ -34,12 +34,12 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-# Please don't abuse this - it's a read only app
+# TODO: read from external config
 Twitter.configure do |config|
-  config.consumer_key = 'USzCMU7LF0Sg8ikOueRaig'
-  config.consumer_secret = 'b08uSkkpfYjLIcrR5gDXgJI24y85gdTKkQ0efbYGGY'
-  config.oauth_token = '54721863-mgTw6cDim71iLzgt3TPC4YRhAE4mVBizKIvEHKhKQ'
-  config.oauth_token_secret = 'R6CkvGYcaDS7ZHj0XPgnTjauYaqlGlETK1sJXOAfjfs'
+  config.consumer_key = ''
+  config.consumer_secret = ''
+  config.oauth_token = '54721863-'
+  config.oauth_token_secret = ''
 end
 
 def speak(who, tweet)
